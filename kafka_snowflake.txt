@@ -1,0 +1,59 @@
+Kafka:
+------------
+1. download kafka for windows :
+	https://kafka.apache.org/downloads : foenlosf thr tgz link scala 2.12-kafka 3.5 version
+
+2. unzip and store in seperate folders : D:
+3. Create 2 folders in drive: kafka_logs : zookeeper
+			      kafka_logs : server_logs
+all the logs while broker zookeeper will be running will  be stored here in these two folders.
+
+
+4.edit zookeeper.properties 
+zookeeper stores the snapshots,will edit the data directory in zookeeper.properties file
+   and set dataDir=D:/kafka_logs/zookeeper
+	   maxClientCnxns=1
+
+5.edit server.properties file
+zookeeper.connect=localhost:2181
+zookeeper.connection.timeout.ms=60000
+log.dirs=D:/kafka_logs/server_logs
+
+6. start the zookeeper service and tell it that which properties it should use
+	as it is a windows system go to the windows folder of kafka bin and start zookeeper with properties followed.
+	-->cd D:\kafka_2.12-3.5.1\bin\windows 
+	-->.\zookeeper-server-start.bat D:\kafka_2.12-3.5.1\config\zookeeper.properties
+
+7. similarly start kafka server with server properties defined
+	-->cd D:\kafka_2.12-3.5.1\bin\windows
+	--> .\kafka-server-start.bat D:\kafka_2.12-3.5.1\config\server.properties
+
+8. As the servers are started , lets create topic.
+Create Topic: 
+D:\kafka_2.12-3.5.1\bin\windows\kafka-topics.bat --create --topic demo_topic --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
+
+9.Produce through Producer :
+D:\kafka_2.12-3.5.1\bin\windows> .\kafka-console-producer.bat --topic demo_topic --bootstrap-server localhost:9092
+>This is producing messages from topic demo topic
+
+10.Consume the messages from another terminal:
+D:\kafka_2.12-3.5.1\bin\windows> .\kafka-console-consumer.bat --topic demo_topic --from-beginning --bootstrap-server localhost:9092
+This is producing messages from topic demo topic.
+
+11. From python code producing messages in the topic:
+
+-->producer.py
+
+from time import sleep
+from json import dumps
+from kafka import KafkaProducer
+
+topic_name="demo_topic"
+producer=KafkaProducer(bootstrap_servers=['localhost:9092'],value_serializer=lambda a:dumps(a).encode('utf-8'))
+
+for i in range(1000):
+    #should be json serializable
+    data= {"message :" :i}
+    print(data)
+    producer.send(topic_name,value=data)
+    sleep(10)
